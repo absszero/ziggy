@@ -48,7 +48,7 @@ class BladeRouteGeneratorTest extends TestCase
         $router = app('router');
 
         // Named. Should end up in JSON
-        $router->domain('{account}.myapp.com')->group(function () use ($router) {
+        $router->group(['domain' => '{account}.myapp.com'], function () use ($router) {
             $router->get('/posts/{post}/comments', function () { return ''; })
                 ->name('postComments.index');
         });

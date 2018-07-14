@@ -71,7 +71,7 @@ class RoutePayload
 
     protected function nameKeyedRoutes()
     {
-        return collect($this->router->getRoutes()->getRoutesByName())
+        return collect($this->getRoutesByName($this->router->getRoutes()))
             ->map(function ($route) {
                 if ($this->isListedAs($route, 'blacklist')) {
                     $this->appendRouteToList($route->getName(), 'blacklist');
@@ -79,9 +79,29 @@ class RoutePayload
                     $this->appendRouteToList($route->getName(), 'whitelist');
                 }
 
-                return collect($route)->only(['uri', 'methods'])
-                    ->put('domain', $route->domain());
+                return collect([
+                    'uri' => $route->uri(),
+                    'methods' => $route->methods(),
+                    'domain' => $route->domain()
+                ]);
             });
+    }
+
+    protected function getRoutesByName(\Illuminate\Routing\RouteCollection $collection)
+    {
+        if (method_exists($collection, 'getRoutesByName')) {
+            return $collection->getRoutesByName();
+        }
+
+        $closure = \Closure::bind(
+            function () {
+                return $this->nameList;
+            },
+            $collection,
+            'Illuminate\Routing\RouteCollection'
+        );
+
+        return $closure();
     }
 
     protected function appendRouteToList($name, $list)
